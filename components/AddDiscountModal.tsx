@@ -68,8 +68,9 @@ export default function AddDiscountModal({
   //   setFilteredDiscounts([]);
   // };
 
-  const parsedValue = parseFloat(discountValue);
+  
   const calculatedDiscount = useMemo(() => {
+    const parsedValue = parseFloat(discountValue);
     if (discountValue === '' || isNaN(parsedValue)) return 0;
     return discountType === 'fixed'
       ? Math.min(parsedValue, subtotal)
@@ -78,7 +79,10 @@ export default function AddDiscountModal({
 
   const finalTotal = subtotal - calculatedDiscount;
 
+  console.log("finalTotal", finalTotal);
+
   const handleApply = () => {
+    const parsedValue = parseFloat(discountValue);
     if (discountValue !== '' && parsedValue > 0) {
       onApplyDiscount({
         customDiscount: {
@@ -91,6 +95,7 @@ export default function AddDiscountModal({
     }
   };
 
+  const parsedValue = parseFloat(discountValue);
   const isApplyDisabled =
     !applyCustomDiscount || discountValue === '' || isNaN(parsedValue) || parsedValue <= 0;
 

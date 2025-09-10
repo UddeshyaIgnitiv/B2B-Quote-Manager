@@ -37,7 +37,7 @@ export default function PaymentDueSection({ draftOrderId, currentPaymentTermId, 
           setEnabled(true);
           setSelectedId(currentPaymentTermId);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error loading payment terms:', err);
       } finally {
         setLoading(false);

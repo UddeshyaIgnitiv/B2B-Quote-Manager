@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { SendInvoiceModalProps } from "@/types/quotes";
 import dayjs from "dayjs";
+import Image from 'next/image';
 
 
 
@@ -113,7 +114,7 @@ export default function SendInvoiceModal({
                 <div key={idx} className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-gray-100 rounded-md flex items-center justify-center">
                     {item.image?.url ? (
-                    <img src={item.image.url} alt={item.image.altText || "Product Image"} className="w-full h-full object-cover rounded-md" />
+                    <Image src={item.image.url} alt={item.image.altText || "Product Image"} width={56} height={56} className="object-cover rounded-md" />
                     ) : (
                     <span className="text-gray-400">🖼️</span>
                     )}

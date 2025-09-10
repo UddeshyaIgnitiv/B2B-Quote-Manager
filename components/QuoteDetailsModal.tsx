@@ -204,7 +204,7 @@ export default function QuoteDetailsModal({ quoteId, onCloseAction, onSaveSucces
         payload.shippingLine = {
           title: editedQuote.shippingMethod.name || "Shipping",
           price: editedQuote.shippingMethod.price,
-          type: editedQuote.shippingLine.type ?? 'custom'
+          type: editedQuote.shippingLine?.type ?? 'custom'
         };
       }
 
@@ -866,7 +866,6 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                     />
                 )}
               </div>
-
 
 
 

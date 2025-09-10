@@ -33,7 +33,7 @@ export default function AddCustomItemModal({ onClose, onAdd }: AddCustomItemModa
 
   useEffect(() => {
     setPriceInput(price.toFixed(2));
-  }, []);
+  }, [price]);
 
   return (
    <div className="fixed inset-0 z-50 bg-gray-300 bg-opacity-50 flex items-center justify-center p-4">

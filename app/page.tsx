@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useAppBridge } from "@/app/providers";
 import QuoteDetailsModal from "@/components/QuoteDetailsModal";
-import { DraftOrder } from "@/types/quotes";
+import { DraftOrder, Quote } from "@/types/quotes";
+import { Toast } from "@shopify/app-bridge/actions";
 
 
 export default function HomePage() {
@@ -49,7 +50,7 @@ export default function HomePage() {
             statusValue = parsed[0]; 
           }
         } catch (err) {
-          console.warn("Failed to parse metafield value:", statusValue);
+          console.warn("Failed to parse metafield value:", statusValue, err);
         }
 
         if (!statusValue) {
@@ -92,9 +93,9 @@ export default function HomePage() {
   useEffect(() => {
     if (!app) return;
 
-    const Toast = require("@shopify/app-bridge/actions").Toast;
     const toastMsg = Toast.create(app, {
       message: "Welcome to the B2B Quote Manager!",
+      duration: 0
     });
     toastMsg.dispatch(Toast.Action.SHOW);
 

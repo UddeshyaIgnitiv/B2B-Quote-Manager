@@ -162,10 +162,11 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
   try {
-    const draftOrderGID = decodeURIComponent(params.id);
+    const resolvedParams = await params;
+    const draftOrderGID = decodeURIComponent(resolvedParams.id);
     //console.log('[Invoice API] Draft Order GID:', draftOrderGID);
 
     const { emailPayload } = await request.json();
