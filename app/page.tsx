@@ -77,8 +77,8 @@ export default function HomePage() {
           if (Array.isArray(parsed) && parsed.length > 0) {
             statusValue = parsed[0];
           }
-        } catch {
-          // ignore parse error
+        } catch (err) {
+          console.warn("Failed to parse metafield value:", statusValue, err);
         }
 
         if (!statusValue) {
