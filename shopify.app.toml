@@ -2,7 +2,7 @@
  
 client_id = "82aada0520ba59b43fadef236c3dda6b"
 name = "B2B Quote Manager"
-application_url = "https://ce15d89f7890.ngrok-free.app/"
+application_url = "https://b2b-quote-manager.vercel.app/"
 embedded = true
 handle = "b2b-quote-manager"
  
@@ -11,9 +11,9 @@ api_version = "2025-04"
  
 [auth]
 redirect_urls = [
-  "https://ce15d89f7890.ngrok-free.app/auth/callback",
-  "https://ce15d89f7890.ngrok-free.app/auth/shopify/callback",
-  "https://ce15d89f7890.ngrok-free.app/api/auth/callback"
+  "https://b2b-quote-manager.vercel.app/auth/callback",
+  "https://b2b-quote-manager.vercel.app/auth/shopify/callback",
+  "https://b2b-quote-manager.vercel.app/api/auth/callback"
 ]
  
 [pos]
