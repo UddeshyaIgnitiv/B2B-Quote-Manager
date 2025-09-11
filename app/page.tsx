@@ -61,7 +61,14 @@ export default function HomePage() {
       const data = await res.json();
       const fetchedQuotes = data.draftOrders || [];
 
-      const transformed: DraftOrder[] = fetchedQuotes.map((quote: any) => {
+      const requestQuotesOnly = fetchedQuotes.filter(
+        (quote: any) =>
+          quote.tags?.includes("request_quote") ||
+          quote.note2 === "Requested quote from storefront"
+      );
+
+      const transformed: DraftOrder[] = requestQuotesOnly.map((quote: any) => {
+        console.log("Quote data", quote);
         let companyName = "";
         const entity = quote.purchasingEntity;
         if (entity?.__typename === "PurchasingCompany") {
@@ -99,6 +106,8 @@ export default function HomePage() {
           totalPrice: quote.totalPrice ? `$${Number(quote.totalPrice).toFixed(2)}` : "-",
           createdAt: quote.createdAt,
           status: statusValue,
+          note2: quote.note2 || "",
+          tags: quote.tags || [],
         };
       });
 
@@ -129,7 +138,7 @@ export default function HomePage() {
   }, [app]);
 
   const handleCreateDraftOrder = () => {
-    alert("Create new draft order functionality will be implemented soon.");
+    alert("Create new quote functionality will be implemented soon.");
   };
 
   // Handle company selection from dropdown
@@ -217,7 +226,7 @@ export default function HomePage() {
                 ) : currentDraftOrders.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-6 text-gray-600">
-                      No draft orders found.
+                      No quotes created via storefront found.
                     </td>
                   </tr>
                 ) : (

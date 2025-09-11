@@ -68,14 +68,14 @@ export async function GET(req: Request) {
           // Update local copy so frontend fetch gets correct valueAlso update the order's local metafield value so it's returned correctly
           draftOrder.metafield = { value: JSON.stringify(expectedMetafieldValue) };
         } catch (error) {
-          console.warn(`Failed to patch metafield for draft order ${draftOrder.id}:`, error);
+          console.warn(`Failed to patch metafield for quote ${draftOrder.id}:`, error);
         }
       }
     }
 
     return NextResponse.json({ draftOrders });
   } catch (error) {
-    console.error('❌ Error fetching draft orders:', error);
+    console.error('❌ Error fetching quote:', error);
     return NextResponse.json(
       { error: 'Failed to fetch quotes', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

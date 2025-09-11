@@ -9,6 +9,7 @@ const GET_DRAFT_ORDERS = gql`
           name
           createdAt
           status 
+          note2
           tags
           totalPrice
           metafield(namespace: "custom", key: "quote_status") {

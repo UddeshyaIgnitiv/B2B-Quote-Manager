@@ -73,6 +73,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
         : null,
       shippingLine: draftOrder.shippingLine || null,
       taxLines: draftOrder.taxLines || [],
+      tags: draftOrder.tags || [],
+      note2: draftOrder.note2 || ""
     };
     //console.log('Final quote returned:', quote);
 
@@ -315,7 +317,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     return NextResponse.json({ success: true, updated: result.draftOrderUpdate.draftOrder });
 
   } catch (error: any) {
-    console.error('Error updating draft order:', error);
+    console.error('Error updating quote:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

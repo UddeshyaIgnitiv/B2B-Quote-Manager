@@ -939,7 +939,7 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                 htmlFor="latest-draft-order"
                 className="block mb-1 text-sm font-medium text-gray-700"
               >
-                Latest Draft Order
+                Latest Quote
               </label>
               <input
                 id="latest-draft-order"
@@ -964,8 +964,8 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
             {/* Notes */}
             <section className="border border-gray-300 bg-white rounded-lg shadow-md p-4">
               <h4 className="font-bold mb-3">Notes</h4>
-              {quote?.notes ? (
-                <p className="text-gray-700 whitespace-pre-wrap">{quote.notes}</p>
+              {quote?.note2 ? (
+                <p className="text-gray-700 whitespace-pre-wrap">{quote.note2}</p>
               ) : (
                 <p className="text-gray-400 italic">No notes provided</p>
               )}
