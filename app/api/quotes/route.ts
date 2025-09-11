@@ -22,20 +22,30 @@ export async function GET(req: Request) {
 
     // Process and patch missing metafields
     for (const draftOrder of draftOrders) {
-      const metafieldMissing = !draftOrder?.metafield?.value;
+
       const draftOrderStatus = draftOrder?.status?.toUpperCase();
+      // Expected metafield value based on current status
+      const expectedMetafieldValue = statusToMetafieldValue[draftOrderStatus];
+      // Parse the existing metafield value if any
+      let currentMetafieldValue;
+      try {
+        currentMetafieldValue = draftOrder.metafield?.value ? JSON.parse(draftOrder.metafield.value) : null;
+      } catch {
+        currentMetafieldValue = null;
+      }
 
+       // Check if update needed (missing or different)
+      const needsUpdate =
+        !currentMetafieldValue ||
+        JSON.stringify(currentMetafieldValue) !== JSON.stringify(expectedMetafieldValue);
 
-      //console.log('metafieldMissing:', metafieldMissing);
-      //console.log('draftOrderStatus:', draftOrderStatus);
-      //console.log('statusToMetafieldValue keys:', Object.keys(statusToMetafieldValue));
-      //console.log('draftOrderStatus in statusToMetafieldValue:', draftOrderStatus in statusToMetafieldValue);
+      console.log("draftOrderStatus", draftOrderStatus);
+      console.log('metafieldMissing:', needsUpdate);
+      console.log('draftOrderStatus:', draftOrderStatus);
+      console.log('statusToMetafieldValue keys:', Object.keys(statusToMetafieldValue));
+      console.log('draftOrderStatus in statusToMetafieldValue:', draftOrderStatus in statusToMetafieldValue);
 
-      if (metafieldMissing && draftOrderStatus && draftOrderStatus in statusToMetafieldValue) {
-        const metafieldValue = statusToMetafieldValue[draftOrderStatus];
-
-        //console.log("metafieldValue", metafieldValue);
-
+      if (draftOrderStatus && draftOrderStatus in statusToMetafieldValue && needsUpdate) {
         try {
           const response = await fetchAdminApi(UPDATE_METAFIELD, {
             metafields: [
@@ -44,7 +54,7 @@ export async function GET(req: Request) {
                 namespace: "custom",
                 key: "quote_status",
                 type: "list.single_line_text_field",
-                value: JSON.stringify(metafieldValue),
+                value: JSON.stringify(expectedMetafieldValue),
               },
             ],
           });
@@ -55,17 +65,17 @@ export async function GET(req: Request) {
             console.log("Metafield updated:", response.metafieldsSet.metafields);
           }  
 
-          // Also update the order's local metafield value so it's returned correctly
-          draftOrder.metafield = { value: JSON.stringify(metafieldValue) };
+          // Update local copy so frontend fetch gets correct valueAlso update the order's local metafield value so it's returned correctly
+          draftOrder.metafield = { value: JSON.stringify(expectedMetafieldValue) };
         } catch (error) {
-          console.warn(`Failed to patch metafield for draft order ${draftOrder.id}:`, error);
+          console.warn(`Failed to patch metafield for quote ${draftOrder.id}:`, error);
         }
       }
     }
 
     return NextResponse.json({ draftOrders });
   } catch (error) {
-    console.error('❌ Error fetching draft orders:', error);
+    console.error('❌ Error fetching quote:', error);
     return NextResponse.json(
       { error: 'Failed to fetch quotes', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

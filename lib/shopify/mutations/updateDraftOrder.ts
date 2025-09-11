@@ -54,6 +54,7 @@ const UPDATE_DRAFT_ORDER = gql`
         totalTax
         totalShippingPrice
         tags
+        note2
       }
       userErrors {
         field

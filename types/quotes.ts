@@ -168,6 +168,7 @@ export interface Quote {
   discountAmount?: number;
   shippingPrice?: number;
   taxAmount?: number | string;
+  note2?: string;
   tags?: string[];
   presentmentCurrencyCode?: string;
   paymentTerms?: PaymentTerms | null;

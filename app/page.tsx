@@ -1,23 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppBridge } from "@/app/providers";
 import QuoteDetailsModal from "@/components/QuoteDetailsModal";
-import { DraftOrder, Quote } from "@/types/quotes";
+import { DraftOrder } from "@/types/quotes";
 import { Toast } from "@shopify/app-bridge/actions";
-
+import { FiFilter } from "react-icons/fi";
 
 export default function HomePage() {
   const app = useAppBridge();
   const [draftOrders, setDraftOrders] = useState<DraftOrder[]>([]);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<string>("All Companies");
+  const [companyList, setCompanyList] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
   const draftOrdersPerPage = 12;
 
-  const totalPages = Math.ceil(draftOrders.length / draftOrdersPerPage);
+  // For filter dropdown visibility
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setFilterOpen(false);
+      }
+    }
+    if (filterOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [filterOpen]);
+
+  // Filtered draft orders based on selected company
+  const filteredDraftOrders =
+    selectedCompany === "All Companies"
+      ? draftOrders
+      : draftOrders.filter((order) => order.company === selectedCompany);
+
+  const totalPages = Math.ceil(filteredDraftOrders.length / draftOrdersPerPage);
   const startIndex = (currentPage - 1) * draftOrdersPerPage;
-  const currentDraftOrders = draftOrders.slice(startIndex, startIndex + draftOrdersPerPage);
+  const currentDraftOrders = filteredDraftOrders.slice(startIndex, startIndex + draftOrdersPerPage);
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -32,7 +61,14 @@ export default function HomePage() {
       const data = await res.json();
       const fetchedQuotes = data.draftOrders || [];
 
-      const transformed: DraftOrder[] = fetchedQuotes.map((quote: any) => {
+      const requestQuotesOnly = fetchedQuotes.filter(
+        (quote: any) =>
+          quote.tags?.includes("request_quote") ||
+          quote.note2 === "Requested quote from storefront"
+      );
+
+      const transformed: DraftOrder[] = requestQuotesOnly.map((quote: any) => {
+        console.log("Quote data", quote);
         let companyName = "";
         const entity = quote.purchasingEntity;
         if (entity?.__typename === "PurchasingCompany") {
@@ -43,26 +79,20 @@ export default function HomePage() {
 
         // --- Custom Status Mapping ---
         let statusValue = quote?.metafield?.value;
-        //to handle "[\"completed\"]" this type
         try {
-          const parsed = JSON.parse(statusValue); 
+          const parsed = JSON.parse(statusValue);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            statusValue = parsed[0]; 
+            statusValue = parsed[0];
           }
         } catch (err) {
           console.warn("Failed to parse metafield value:", statusValue, err);
         }
 
         if (!statusValue) {
-          if (quote.status === "OPEN") {
-            statusValue = "submitted";
-          } else if (quote.status === "INVOICE_SENT") {
-            statusValue = "offer_sent";
-          } else if (quote.status === "COMPLETED") {
-            statusValue = "completed";
-          } else {
-            statusValue = "under_review";
-          }
+          if (quote.status === "OPEN") statusValue = "submitted";
+          else if (quote.status === "INVOICE_SENT") statusValue = "offer_sent";
+          else if (quote.status === "COMPLETED") statusValue = "completed";
+          else statusValue = "under_review";
         }
 
         return {
@@ -72,16 +102,21 @@ export default function HomePage() {
             quote.customer?.firstName || quote.customer?.lastName
               ? `${quote.customer.firstName ?? ""} ${quote.customer.lastName ?? ""}`.trim()
               : quote.customer?.email ?? "N/A",
-          company: companyName,
-          totalPrice: quote.totalPrice
-            ? `$${Number(quote.totalPrice).toFixed(2)}`
-            : "-",
+          company: companyName || "N/A",
+          totalPrice: quote.totalPrice ? `$${Number(quote.totalPrice).toFixed(2)}` : "-",
           createdAt: quote.createdAt,
           status: statusValue,
+          note2: quote.note2 || "",
+          tags: quote.tags || [],
         };
       });
 
       transformed.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      const companiesSet = new Set(transformed.map((order) => order.company || "N/A"));
+      const companiesArray = ["All Companies", ...Array.from(companiesSet).sort()];
+      setCompanyList(companiesArray);
+
       setDraftOrders(transformed);
     } catch (err) {
       console.error("Failed to fetch quotes:", err);
@@ -95,7 +130,7 @@ export default function HomePage() {
 
     const toastMsg = Toast.create(app, {
       message: "Welcome to the B2B Quote Manager!",
-      duration: 0
+      duration: 0,
     });
     toastMsg.dispatch(Toast.Action.SHOW);
 
@@ -103,7 +138,14 @@ export default function HomePage() {
   }, [app]);
 
   const handleCreateDraftOrder = () => {
-    alert("Create new draft order functionality will be implemented soon.");
+    alert("Create new quote functionality will be implemented soon.");
+  };
+
+  // Handle company selection from dropdown
+  const onSelectCompany = (company: string) => {
+    setSelectedCompany(company);
+    setCurrentPage(1);
+    setFilterOpen(false);
   };
 
   return (
@@ -114,9 +156,7 @@ export default function HomePage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Welcome to B2B Quote Manager
           </h1>
-          <p className="text-lg text-gray-600">
-            Manage your quotes efficiently and easily.
-          </p>
+          <p className="text-lg text-gray-600">Manage your quotes efficiently and easily.</p>
         </div>
 
         {/* Draft Orders Table */}
@@ -130,7 +170,6 @@ export default function HomePage() {
             >
               Create a Quote
             </button>
-
           </div>
 
           {/* Table */}
@@ -139,7 +178,39 @@ export default function HomePage() {
               <thead className="bg-gray-200 text-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-semibold">ID</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Customer</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold relative">
+                    <div className="flex items-center space-x-1">
+                      <span>Customer</span>
+                      {/* Filter Icon */}
+                      <div ref={filterRef} className="relative">
+                        <button
+                          onClick={() => setFilterOpen(!filterOpen)}
+                          aria-label="Filter by Company"
+                          className="text-gray-600 hover:text-blue-900 bg-blue-100 focus:outline-none"
+                        >
+                          <FiFilter size={12} />
+                        </button>
+
+                        {filterOpen && (
+                          <div className="absolute z-50 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-auto">
+                            {companyList.map((company) => (
+                              <button
+                                key={company}
+                                onClick={() => onSelectCompany(company)}
+                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 focus:outline-none ${
+                                  selectedCompany === company
+                                    ? "bg-blue-600 text-white"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {company}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold">Total Price</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold">Created At</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold">Status</th>
@@ -155,7 +226,7 @@ export default function HomePage() {
                 ) : currentDraftOrders.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-6 text-gray-600">
-                      No draft orders found.
+                      No quotes created via storefront found.
                     </td>
                   </tr>
                 ) : (
@@ -204,7 +275,10 @@ export default function HomePage() {
                               : "bg-yellow-100 text-yellow-700"
                           }`}
                         >
-                        {order.status.replace(/_/g, " ").toLowerCase().replace(/^\w/, c => c.toUpperCase())}
+                          {order.status
+                            .replace(/_/g, " ")
+                            .toLowerCase()
+                            .replace(/^\w/, (c) => c.toUpperCase())}
                         </span>
                       </td>
                     </tr>
@@ -212,14 +286,6 @@ export default function HomePage() {
                 )}
               </tbody>
             </table>
-
-            {/* Quote Details Modal */}
-            {selectedQuoteId && (
-              <QuoteDetailsModal
-                quoteId={selectedQuoteId}
-                onCloseAction={() => setSelectedQuoteId(null)}
-              />
-            )}
 
             {/* Pagination */}
             <div className="flex justify-center items-center space-x-2 mt-6">
@@ -269,18 +335,18 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Quote Details Modal */}
-        {selectedQuoteId && (
-          <QuoteDetailsModal
-            quoteId={selectedQuoteId}
-            onCloseAction={() => setSelectedQuoteId(null)}
-            onSaveSuccess={() => {
-              fetchQuotes(); // Will now refresh the list
-            }}
-          />
-        )}
+          {/* Quote Details Modal */}
+          {selectedQuoteId && (
+            <QuoteDetailsModal
+              quoteId={selectedQuoteId}
+              onCloseAction={() => setSelectedQuoteId(null)}
+              onSaveSuccess={() => {
+                fetchQuotes();
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
