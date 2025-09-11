@@ -90,16 +90,16 @@ export default function SendInvoiceModal({
         <div className="flex items-start justify-between mb-4">
             <div className="text-left">
             <h2 className="text-2xl font-semibold">{quote?.companyName || "Ignitiv-demo-store"}</h2>
-            <p className="text-xl font-medium">{quote?.status === "INVOICE_SENT" ? "Review and confirm to complete your order" : "Complete your purchase"}</p>
+            <p className="text-xl font-medium">{quote?.paymentTerms ? "Review and confirm to complete your order" : "Complete your purchase"}</p>
             </div>
             <div className="text-right text-sm text-gray-500 font-medium">
-            OFFER #
+            OFFER
             <span className="ml-1 font-semibold text-gray-700">{quoteName}</span>
             </div>
         </div>
 
         <button className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition">
-            {quote?.status === "INVOICE_SENT" ? "Confirm order" : "Complete your purchase"}
+            {quote?.paymentTerms ? "Confirm order" : "Complete your purchase"}
         </button>
         <p className="text-sm text-gray-600">
             or <a href="#" className="text-blue-600 underline">Visit our store</a>
@@ -489,7 +489,7 @@ export default function SendInvoiceModal({
                         onClick={handleSend}
                         className="text-sm px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
                         >
-                        Resend offer
+                        Sending
                         </button>
                     </>
                     )}
