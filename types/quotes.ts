@@ -213,7 +213,7 @@ export interface SendInvoiceModalProps {
   quote:Quote;
 }
 
-export type Alert = { message: string; type: 'success' | 'error' };
+export type Alert = { message: string; type: 'success' | 'warning' | 'error' };
 
 export interface PaymentDueSectionProps {
   draftOrderId: string;
