@@ -422,7 +422,7 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                 <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
               )}
             </h2>
-
+              {quote?.status !== 'COMPLETED' && (
             <button
                 onClick={() => {
                   setIsEditing(!isEditing);
@@ -434,18 +434,21 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
               >
                 {isEditing ? 'Cancel' : 'Edit'}
             </button>
+            )}
             {/* Display the alert message if it's set */}
             {alert && (
               <div
                 className={`px-4 py-2 mb-4 text-sm rounded-lg border ${
                   alert.type === 'success'
                     ? 'bg-green-100 text-green-800 border-green-300'
+                    : alert.type === 'warning'
+                    ? 'bg-yellow-100 text-yellow-800 border-yellow-300'  
                     : 'bg-red-100 text-red-800 border-red-300'
                 }`}
                 role="alert"
               >
                 <span className="font-medium">
-                  {alert.type === 'success' ? 'Success' : 'Error'}!
+                  {alert.type === 'success' ? 'Success' : alert.type === 'warning' ? 'Warning': 'Error'}!
                 </span>
                 <span className="block sm:inline ml-1">{alert.message}</span>
               </div>
@@ -719,6 +722,13 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                       <button
                         type="button"
                         onClick={() => {
+                          if (quote?.status === 'COMPLETED') {
+                            setAlert({
+                              type: 'warning',
+                              message: 'This quote is completed. Discounts can no longer be modified.',
+                            });
+                            return;
+                          }
                           if (!isEditing) {
                             setEditPromptVisible(true);
                             setTimeout(() => setEditPromptVisible(false), 3000); // Reset after 3s
@@ -783,6 +793,13 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                   <button
                     type="button"
                     onClick={() => {
+                      if (quote?.status === 'COMPLETED') {
+                        setAlert({
+                          type: 'warning',
+                          message: 'This quote is completed. Shipping details cannot be changed.',
+                        });
+                        return;
+                      }
                       if (!isEditing) {
                         setEditPromptVisible(true);
                         setTimeout(() => setEditPromptVisible(false), 3000); // auto hide
@@ -905,7 +922,15 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
 
                           setInvoiceSending(true);
                           try {
-                            await sendDraftOrderInvoice(editedQuote.id, emailPayload);
+                            
+                            const hasQuoteTag = editedQuote?.tags?.some(
+                              tag => tag.toLowerCase() === 'request_quote'
+                            );
+
+                            const subject = hasQuoteTag
+                              ? `Quote ${editedQuote.name.replace(/^#?D/, '#Q')}`
+                              : `Invoice ${editedQuote.name}`;
+                            await sendDraftOrderInvoice(editedQuote.id, {...emailPayload, subject,});
                             setAlert({ message: "Offer sent successfully!", type: "success" });
                             setShowSendInvoiceModal(false);
                             setTimeout(() => setAlert(null), 5000);
