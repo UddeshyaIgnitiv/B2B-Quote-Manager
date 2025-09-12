@@ -987,14 +987,28 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
           {/* Right Sidebar */}
           <aside className="w-96 border-l border-gray-200 p-6 flex flex-col space-y-8 overflow-y-auto">
             {/* Notes */}
-            <section className="border border-gray-300 bg-white rounded-lg shadow-md p-4">
-              <h4 className="font-bold mb-3">Notes</h4>
-              {quote?.note2 ? (
-                <p className="text-gray-700 whitespace-pre-wrap">{quote.note2}</p>
-              ) : (
-                <p className="text-gray-400 italic">No notes provided</p>
-              )}
+            <section className="border border-gray-300 bg-white rounded-lg shadow-md p-4 space-y-4">
+              {/* Notes Section */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Notes</h4>
+                {quote?.note2 ? (
+                  <p className="text-gray-700 whitespace-pre-wrap">{quote.note2}</p>
+                ) : (
+                  <p className="text-gray-400 italic">No notes provided</p>
+                )}
+              </div>
+
+              {/* PO Number Section */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">PO number</h4>
+                {quote?.poNumber ? (
+                  <p className="text-gray-700 whitespace-pre-wrap">{quote.poNumber}</p>
+                ) : (
+                  <p className="text-gray-400 italic">No PO provided</p>
+                )}
+              </div>
             </section>
+
 
             {/* Customer Info */}
             <section className="border border-gray-300 bg-white rounded-lg shadow-md p-4">
