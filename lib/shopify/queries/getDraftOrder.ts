@@ -8,6 +8,7 @@ const GET_DRAFT_ORDER = gql`
       createdAt
       status
       tags
+      poNumber
       note2
       email
       paymentTerms {

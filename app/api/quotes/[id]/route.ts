@@ -55,6 +55,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       shippingAddress: draftOrder.shippingAddress || null,
       billingAddress: draftOrder.billingAddress || null,
       lineItems,
+      poNumber: draftOrder.poNumber,
       subtotalPrice: draftOrder.subtotalPrice || null,
       shippingPrice: draftOrder.totalShippingPriceSet?.shopMoney?.amount || 0,
       taxAmount: draftOrder.totalTaxSet?.shopMoney?.amount || 0,

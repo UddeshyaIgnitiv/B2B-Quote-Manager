@@ -156,6 +156,7 @@ export interface Quote {
   shippingAddress?: ShippingAndBillingAddress;
   billingAddress?: ShippingAndBillingAddress;
   notes?: string;
+  poNumber?: string
   lineItems?: LineItem[];
   taxLines: TaxLine[];
   shippingLine: ShippingLine;
