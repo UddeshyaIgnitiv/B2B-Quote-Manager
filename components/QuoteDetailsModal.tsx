@@ -550,31 +550,50 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                       setSearchError(null);
                     }}
                     onSelect={(selectedProducts) => {
-                      //console.log("[QuoteDetailsModal] Products selected from modal:", selectedProducts);
-                      const newItems: LineItem[] = selectedProducts.map((p) => ({
-                        id:p.id,
-                        title: p.title,
-                        quantity: 1,
-                        price: p.price,
-                        variantId: p.variantId ?? undefined,
-                        image: p.image,
-                        isCustom: false,
-                      }));
-                      
+                      setEditedQuote((prev) => {
+                        if (!prev) return prev;
 
-                      setEditedQuote((prev) => ({
-                        ...prev!,
-                        lineItems: [...(prev?.lineItems || []), ...newItems],
-                      }));
+                        const existingItems = [...(prev.lineItems || [])];
+
+                        selectedProducts.forEach((selected) => {
+                          const existingIndex = existingItems.findIndex(
+                            (item) => item.variantId === selected.variantId
+                          );
+
+                          if (existingIndex !== -1) {
+                            // Increment quantity if already added
+                            existingItems[existingIndex].quantity += 1;
+                          } else {
+                            // Add as new item
+                            existingItems.push({
+                              id: selected.id,
+                              title: selected.title,
+                              quantity: 1,
+                              price: selected.price,
+                              variantId: selected.variantId ?? undefined,
+                              image: selected.image,
+                              isCustom: false,
+                            });
+                          }
+                        });
+
+                        return {
+                          ...prev,
+                          lineItems: existingItems,
+                        };
+                      });
 
                       setBrowseModalOpen(false);
-                      setSearchTerm(''); // reset after selection
+                      setSearchTerm('');
                       setSearchResults([]);
                     }}
-                    setSearchTerm={setSearchTerm} 
+                    setSearchTerm={setSearchTerm}
                     searchTerm={searchTerm}
+                    existingVariantIds={editedQuote?.lineItems?.map((item) => item.variantId) ?? []}
                   />
                 )}
+
+
                 {/* <button
                   type="button"
                   onClick={() => {

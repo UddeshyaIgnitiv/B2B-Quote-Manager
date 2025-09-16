@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     // Transform the data to the shape your frontend expects
     const products = data.products.edges.map((edge: any) => {
       const node = edge.node;
+      const variant = node.variants?.edges?.[0]?.node;
       //console.log("Data Products", node);
       return {
         id: node.id,
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
           ? { url: node.featuredImage.url, altText: node.featuredImage.altText }
           : undefined,
         price: parseFloat(node.priceRangeV2.minVariantPrice.amount),
+        variantId: variant?.id ?? null,
       };
     });
 
