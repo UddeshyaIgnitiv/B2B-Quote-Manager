@@ -68,7 +68,7 @@ export default function HomePage() {
       );
 
       const transformed: DraftOrder[] = requestQuotesOnly.map((quote: any) => {
-        console.log("Quote data", quote);
+        //console.log("Quote data", quote);
         let companyName = "";
         const entity = quote.purchasingEntity;
         if (entity?.__typename === "PurchasingCompany") {

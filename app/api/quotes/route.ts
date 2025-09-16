@@ -39,11 +39,11 @@ export async function GET(req: Request) {
         !currentMetafieldValue ||
         JSON.stringify(currentMetafieldValue) !== JSON.stringify(expectedMetafieldValue);
 
-      console.log("draftOrderStatus", draftOrderStatus);
-      console.log('metafieldMissing:', needsUpdate);
-      console.log('draftOrderStatus:', draftOrderStatus);
-      console.log('statusToMetafieldValue keys:', Object.keys(statusToMetafieldValue));
-      console.log('draftOrderStatus in statusToMetafieldValue:', draftOrderStatus in statusToMetafieldValue);
+      //console.log("draftOrderStatus", draftOrderStatus);
+      //console.log('metafieldMissing:', needsUpdate);
+      //console.log('draftOrderStatus:', draftOrderStatus);
+      //console.log('statusToMetafieldValue keys:', Object.keys(statusToMetafieldValue));
+      //console.log('draftOrderStatus in statusToMetafieldValue:', draftOrderStatus in statusToMetafieldValue);
 
       if (draftOrderStatus && draftOrderStatus in statusToMetafieldValue && needsUpdate) {
         try {

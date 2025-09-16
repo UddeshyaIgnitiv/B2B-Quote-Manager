@@ -28,6 +28,7 @@ export default function QuoteDetailsModal({ quoteId, onCloseAction, onSaveSucces
   const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const searchAbortController = useRef<AbortController | null>(null);
 
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
@@ -43,6 +44,8 @@ export default function QuoteDetailsModal({ quoteId, onCloseAction, onSaveSucces
   const [showShippingOrDeliveryModal, setShippingOrDeliveryModal] = useState(false);
   //const [alert, setAlert] = useState<{ message: string; type: 'success' | 'error' | null }>({ message: '', type: null });
   const [alert, setAlert] = useState<Alert | null>(null);
+
+  //console.log("Quote", quote);
   
  useEffect(() => {
     async function fetchQuoteDetails() {
@@ -89,47 +92,91 @@ export default function QuoteDetailsModal({ quoteId, onCloseAction, onSaveSucces
     fetchQuoteDetails();
   }, [encodedGid]);
 
+  useEffect(() => {
+  const fetchLocations = async () => {
+    try {
+      const res = await fetch('/api/locations');
+      const data = await res.json();
+      const locations = data.companyLocations || [];
+
+      if (!locations.length) {
+        setSelectedLocationId('');
+        return;
+      }
+
+      // Match from quote's location name (if present)
+      if (quote?.locationName) {
+        const matched = locations.find(
+          (loc: any) =>
+            loc.name.toLowerCase() === quote?.locationName?.toLowerCase()
+        );
+        if (matched) {
+          setSelectedLocationId(matched.id);
+          return;
+        }
+      }
+
+      // Fallback to first location
+      setSelectedLocationId(locations[0].id);
+    } catch (error) {
+      console.error('Failed to fetch company locations', error);
+    }
+  };
+
+  if (quote) {
+    fetchLocations();
+  }
+}, [quote]);
+
+
 
   // --- NEW: Debounced product search
   useEffect(() => {
-    if (searchTerm.trim().length === 0) {
-      setSearchResults([]);
-      setSearchError(null);
-      return;
-    }
+  if (searchTerm.trim().length === 0 || !selectedLocationId) {
+    setSearchResults([]);
+    setSearchError(null);
+    return;
+  }
 
-    setBrowseModalOpen(true);
+  setBrowseModalOpen(true);
 
-    // Cancel previous fetch if any
-    if (searchAbortController.current) {
-      searchAbortController.current.abort();
-    }
+  // Cancel previous fetch if any
+  if (searchAbortController.current) {
+    searchAbortController.current.abort();
+  }
 
-    const controller = new AbortController();
-    searchAbortController.current = controller;
+  const controller = new AbortController();
+  searchAbortController.current = controller;
 
-    const delayDebounceFn = setTimeout(async () => {
-      setSearchLoading(true);
-      setSearchError(null);
-      try {
-        const res = await fetch(`/api/products/list?search=${encodeURIComponent(searchTerm)}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`Search failed with status ${res.status}`);
-        
-        const data = await res.json();
-        setSearchResults(data.products || []); // Adjust key based on your API
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setSearchError(err.message || 'Search error');
-        }
-      } finally {
-        setSearchLoading(false);
+  const delayDebounceFn = setTimeout(async () => {
+    setSearchLoading(true);
+    setSearchError(null);
+    try {
+      const params = new URLSearchParams({
+        search: searchTerm,
+        companyLocationId: selectedLocationId,
+      });
+
+      const res = await fetch(`/api/products/list?${params.toString()}`, {
+        signal: controller.signal,
+      });
+
+      if (!res.ok) throw new Error(`Search failed with status ${res.status}`);
+
+      const data = await res.json();
+      setSearchResults(data.products || []);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        setSearchError(err.message || 'Search error');
       }
-    }, 400); // debounce delay
+    } finally {
+      setSearchLoading(false);
+    }
+  }, 400); // debounce delay
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+  return () => clearTimeout(delayDebounceFn);
+}, [searchTerm, selectedLocationId]); // ✅ include selectedLocationId
+
   
   useEffect(() => {
     if (alert) {
@@ -569,7 +616,7 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                               id: selected.id,
                               title: selected.title,
                               quantity: 1,
-                              price: selected.price,
+                              price: selected.contextualPrice?.amount ?? selected.price,
                               variantId: selected.variantId ?? undefined,
                               image: selected.image,
                               isCustom: false,
@@ -590,6 +637,7 @@ const senderEmails = ["pankit.b@ignitiv.com", "uddeshya.k@ignitiv.com"];
                     setSearchTerm={setSearchTerm}
                     searchTerm={searchTerm}
                     existingVariantIds={editedQuote?.lineItems?.map((item) => item.variantId) ?? []}
+                    locationName={editedQuote?.locationName}
                   />
                 )}
 

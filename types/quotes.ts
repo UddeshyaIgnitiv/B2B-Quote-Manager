@@ -56,6 +56,10 @@ export interface ProductSearchResult {
   variantId: string;
   image?: VariantImage;
   price: number;
+  contextualPrice?: {
+    amount: number;
+    currencyCode: string;
+  };
 }
 
 export interface LineItem {

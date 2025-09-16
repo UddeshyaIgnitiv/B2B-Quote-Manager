@@ -7,22 +7,35 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const searchQuery = searchParams.get('search') || '';
   const limit = Number(searchParams.get('limit')) || 10;
+  const companyLocationId = searchParams.get('companyLocationId');
 
-  // Prepare variables for your GraphQL query if it supports variables
+  if (!companyLocationId) {
+    return NextResponse.json(
+      { error: 'companyLocationId is required for contextual pricing' },
+      { status: 400 }
+    );
+  }
+
   const variables = {
     query: searchQuery ? `title:*${searchQuery}*` : '',
     first: limit,
+    context: {
+      companyLocationId: companyLocationId,
+    },
   };
 
   try {
     const data = await fetchAdminApi(getProductsQuery, variables);
-    //console.log("Data Products", data);
 
-    // Transform the data to the shape your frontend expects
     const products = data.products.edges.map((edge: any) => {
       const node = edge.node;
       const variant = node.variants?.edges?.[0]?.node;
-      //console.log("Data Products", node);
+
+      const contextualPriceField = variant?.contextualPricing?.price;
+      const price = contextualPriceField
+        ? parseFloat(contextualPriceField.amount)
+        : parseFloat(variant?.price || '0');
+
       return {
         id: node.id,
         title: node.title,
@@ -30,14 +43,18 @@ export async function GET(request: NextRequest) {
         image: node.featuredImage
           ? { url: node.featuredImage.url, altText: node.featuredImage.altText }
           : undefined,
-        price: parseFloat(node.priceRangeV2.minVariantPrice.amount),
+        price: price,
         variantId: variant?.id ?? null,
+        inventoryItemId: variant?.inventoryItem?.id ?? null,
       };
     });
 
     return NextResponse.json({ products });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch products', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch products' },
+      { status: 500 }
+    );
   }
 }
