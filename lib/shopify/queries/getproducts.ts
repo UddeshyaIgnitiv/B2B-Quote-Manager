@@ -1,6 +1,6 @@
 // lib/shopify/queries/getproducts.ts
 const getProductsQuery = `
-  query getProducts($query: String, $first: Int!) {
+  query getProducts($query: String, $first: Int!, $context: ContextualPricingContext!) {
     products(first: $first, query: $query) {
       edges {
         node {
@@ -13,8 +13,8 @@ const getProductsQuery = `
           }
           priceRangeV2 {
             minVariantPrice {
-              amount
-              currencyCode
+                amount
+                currencyCode
             }
           }
           variants(first: 1) {
@@ -22,6 +22,15 @@ const getProductsQuery = `
               node {
                 id
                 price
+                inventoryItem {
+                  id
+                }
+                contextualPricing(context: $context) {
+                  price {
+                    amount
+                    currencyCode
+                  }
+                }
               }
             }
           }
