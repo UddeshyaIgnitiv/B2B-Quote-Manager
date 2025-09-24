@@ -1,7 +1,7 @@
-// app/api/payment-terms/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchAdminApi } from '@/lib/shopify/shopify_service';
 
+// 🧾 GraphQL: Fetch available payment terms templates
 const GET_TEMPLATES_QUERY = `
   {
     paymentTermsTemplates {
@@ -13,6 +13,7 @@ const GET_TEMPLATES_QUERY = `
   }
 `;
 
+// 📦 GraphQL: Fetch current draft order payment terms
 const GET_DRAFT_ORDER_QUERY = `
   query getDraftOrder($id: ID!) {
     draftOrder(id: $id) {
@@ -21,11 +22,20 @@ const GET_DRAFT_ORDER_QUERY = `
         id
         dueInDays
         translatedName
+        paymentSchedules(first: 1) {
+          edges {
+            node {
+              issuedAt
+              dueAt
+            }
+          }
+        }
       }
     }
   }
 `;
 
+// ✍️ GraphQL: Update draft order with selected payment terms and issue date
 const MUTATION_SET_PAYMENT_TERMS = `
   mutation draftOrderUpdate($id: ID!, $input: DraftOrderInput!) {
     draftOrderUpdate(id: $id, input: $input) {
@@ -35,6 +45,14 @@ const MUTATION_SET_PAYMENT_TERMS = `
           id
           translatedName
           dueInDays
+          paymentSchedules(first: 10) {
+            edges {
+              node {
+                issuedAt
+                dueAt
+              }
+            }
+          }
         }
       }
       userErrors {
@@ -45,10 +63,12 @@ const MUTATION_SET_PAYMENT_TERMS = `
   }
 `;
 
+// 🔍 GET /api/payment-terms?draftOrderId=...
 export async function GET(req: NextRequest) {
   const draftOrderId = req.nextUrl.searchParams.get('draftOrderId');
+
   if (!draftOrderId) {
-    return NextResponse.json({ error: 'draftOrderId is required' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing draftOrderId' }, { status: 400 });
   }
 
   try {
@@ -62,24 +82,35 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ templates, paymentTerms });
   } catch (error: any) {
+    console.error('Error fetching payment terms:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-
+// 📬 POST /api/payment-terms
 export async function POST(req: NextRequest) {
   try {
-    const { draftOrderId, templateId } = await req.json();
+    const { draftOrderId, templateId, issueDate } = await req.json();
 
-    if (!draftOrderId || !templateId) {
-      return NextResponse.json({ error: 'Missing draftOrderId or templateId' }, { status: 400 });
+    if (!draftOrderId || !templateId || !issueDate) {
+      return NextResponse.json(
+        { error: 'Missing draftOrderId, templateId, or issueDate' },
+        { status: 400 }
+      );
     }
+
+    const issuedAtISO = new Date(issueDate).toISOString();
 
     const variables = {
       id: draftOrderId,
       input: {
         paymentTerms: {
           paymentTermsTemplateId: templateId,
+          paymentSchedules: [
+            {
+              issuedAt: issuedAtISO,
+            },
+          ],
         },
       },
     };
@@ -87,11 +118,18 @@ export async function POST(req: NextRequest) {
     const result = await fetchAdminApi(MUTATION_SET_PAYMENT_TERMS, variables);
 
     if (result.draftOrderUpdate?.userErrors?.length) {
-      return NextResponse.json({ error: result.draftOrderUpdate.userErrors[0].message }, { status: 400 });
+      const [firstError] = result.draftOrderUpdate.userErrors;
+      return NextResponse.json({ error: firstError.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, paymentTerms: result.draftOrderUpdate.draftOrder.paymentTerms });
+    const updatedPaymentTerms = result.draftOrderUpdate.draftOrder.paymentTerms;
+
+    return NextResponse.json({
+      success: true,
+      paymentTerms: updatedPaymentTerms,
+    });
   } catch (err: any) {
+    console.error('Error updating payment terms:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
