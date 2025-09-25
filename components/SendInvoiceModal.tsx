@@ -132,20 +132,23 @@ export default function SendInvoiceModal({
 
             <div className="border-t pt-4 space-y-1 text-sm">
                 <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${Number(quote?.subtotalPrice ?? 0).toFixed(2)}</span>
+                    <span>Subtotal</span>
+                    <span>${Number(quote?.subtotalPrice ?? 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                <span>Discount</span>
-                <span>- ${Number(quote?.totalDiscounts ?? 0).toFixed(2)}</span>
+                    <span>Discount</span>
+                    <span>
+                        ${Number(quote?.totalDiscounts || 0).toFixed(2).replace(/^0\.00$/, '0.00').replace(/^/, Number(quote?.totalDiscounts || 0) > 0 ? '- ' : '')}
+                    </span>
+                </div>
+
+                <div className="flex justify-between">
+                    <span>Shipping</span>
+                    <span>${Number(quote?.shippingLine?.price ?? 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>${Number(quote?.shippingLine?.price ?? 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                <span>Estimated taxes</span>
-                <span>${Number(quote?.taxAmount ?? 0).toFixed(2)}</span>
+                    <span>Estimated taxes</span>
+                    <span>${Number(quote?.taxAmount ?? 0).toFixed(2)}</span>
                 </div>
             </div>
 
