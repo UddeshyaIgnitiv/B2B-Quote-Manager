@@ -138,7 +138,9 @@ export default function SendInvoiceModal({
                 <div className="flex justify-between">
                     <span>Discount</span>
                     <span>
-                        ${Number(quote?.totalDiscounts || 0).toFixed(2).replace(/^0\.00$/, '0.00').replace(/^/, Number(quote?.totalDiscounts || 0) > 0 ? '- ' : '')}
+                        {Number(quote?.totalDiscounts ?? 0) > 0
+                        ? `- $${Number(quote.totalDiscounts).toFixed(2)}`
+                        : `$0.00`}
                     </span>
                 </div>
 
