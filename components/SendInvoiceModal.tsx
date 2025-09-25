@@ -30,7 +30,7 @@ export default function SendInvoiceModal({
   const [showCcBcc, setShowCcBcc] = useState(false);
 
 
-  //console.log("quote Status", quote?.status);
+  console.log("quote Status", quote, quote?.subtotal);
   const quoteName = quote?.name ? quote.name.replace(/^#?D/, '#Q') : '';
   useEffect(() => {
     setTo(initialTo);
@@ -90,7 +90,7 @@ export default function SendInvoiceModal({
         <div className="flex items-start justify-between mb-4">
             <div className="text-left">
             <h2 className="text-2xl font-semibold">{quote?.companyName || "Ignitiv-demo-store"}</h2>
-            <p className="text-xl font-medium">{quote?.paymentTerms ? "Review and confirm to complete your order" : "Complete your purchase"}</p>
+            <p className="text-xl font-medium">Review and confirm to complete your quote</p>
             </div>
             <div className="text-right text-sm text-gray-500 font-medium">
             OFFER
@@ -99,7 +99,7 @@ export default function SendInvoiceModal({
         </div>
 
         <button className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition">
-            {quote?.paymentTerms ? "Confirm order" : "Complete your purchase"}
+            Review quote
         </button>
         <p className="text-sm text-gray-600">
             or <a href="#" className="text-blue-600 underline">Visit our store</a>
@@ -108,7 +108,7 @@ export default function SendInvoiceModal({
 
         {/* Order Summary */}
         <div className="border border-gray-200 rounded-md bg-white p-4 space-y-4">
-            <h3 className="font-semibold text-base">Order summary</h3>
+            <h3 className="font-semibold text-base">Quote summary</h3>
 
             {quote?.lineItems?.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-4">
@@ -133,113 +133,112 @@ export default function SendInvoiceModal({
             <div className="border-t pt-4 space-y-1 text-sm">
                 <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${quote?.subtotal?.toFixed(2)}</span>
+                <span>${Number(quote?.subtotalPrice ?? 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                <span>Discount</span>
+                <span>- ${Number(quote?.totalDiscounts ?? 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>${Number(quote?.shippingLine?.price || 0).toFixed(2)}</span>
+                <span>${Number(quote?.shippingLine?.price ?? 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                 <span>Estimated taxes</span>
-                <span>${quote?.taxAmount || "0.00"}</span>
+                <span>${Number(quote?.taxAmount ?? 0).toFixed(2)}</span>
                 </div>
             </div>
 
             <div className="border-t pt-4 flex justify-between font-semibold text-base">
                 <span>Total</span>
                 <span>
-                    {isNaN(Number(quote?.totalPrice))
-                        ? '—'
-                        : `$${Number(quote.totalPrice).toFixed(2)} ${quote?.presentmentCurrencyCode || "USD"}`}
+                    {quote?.totalPrice != null && !isNaN(Number(quote.totalPrice))
+                    ? `$${Number(quote.totalPrice).toFixed(2)} ${quote?.presentmentCurrencyCode ?? "USD"}`
+                    : '—'}
                 </span>
-
             </div>
+
         </div>
 
         {/* Customer Information */}
         <div className="border border-gray-200 rounded-md bg-white p-4 space-y-6">
             <h3 className="font-semibold text-base">Customer information</h3>
 
-            {/* Shipping Address */}
-            {quote?.shippingAddress && (
+            {/* Grid for Shipping + Billing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Shipping Address */}
+                {quote?.shippingAddress && (
                 <div>
-                <h4 className="font-semibold text-sm mb-1">Shipping address</h4>
-                {quote.customer && (
+                    <h4 className="font-semibold text-sm mb-1">Shipping address</h4>
+                    {quote.customer && (
                     <p className="text-sm text-gray-800">
-                    {quote.customer.firstName} {quote.customer.lastName}
+                        {quote.customer.firstName} {quote.customer.lastName}
                     </p>
-                )}
-                <p className="text-sm text-gray-800">{quote.shippingAddress.address1}</p>
-                {quote.shippingAddress.address2 && (
+                    )}
+                    <p className="text-sm text-gray-800">{quote.shippingAddress.address1}</p>
+                    {quote.shippingAddress.address2 && (
                     <p className="text-sm text-gray-800">{quote.shippingAddress.address2}</p>
-                )}
-                <p className="text-sm text-gray-800">
+                    )}
+                    <p className="text-sm text-gray-800">
                     {quote.shippingAddress.city}, {quote.shippingAddress.provinceCode} {quote.shippingAddress.zip}
-                </p>
-                <p className="text-sm text-gray-800">{quote.shippingAddress.country}</p>
-                {quote.shippingAddress.phone && (
+                    </p>
+                    <p className="text-sm text-gray-800">{quote.shippingAddress.country}</p>
+                    {quote.shippingAddress.phone && (
                     <p className="text-sm text-gray-800">{quote.shippingAddress.phone}</p>
-                )}
+                    )}
                 </div>
-            )}
+                )}
 
-            {/* Billing Address */}
-            {quote?.billingAddress && (
+                {/* Billing Address */}
+                {quote?.billingAddress && (
                 <div>
-                <h4 className="font-semibold text-sm mb-1">Billing address</h4>
-                <p className="text-sm text-gray-800">{quote.billingAddress.name}</p>
-                <p className="text-sm text-gray-800">{quote.billingAddress.address1}</p>
-                {quote.billingAddress.address2 && (
+                    <h4 className="font-semibold text-sm mb-1">Billing address</h4>
+                    <p className="text-sm text-gray-800">{quote.billingAddress.name}</p>
+                    <p className="text-sm text-gray-800">{quote.billingAddress.address1}</p>
+                    {quote.billingAddress.address2 && (
                     <p className="text-sm text-gray-800">{quote.billingAddress.address2}</p>
-                )}
-                <p className="text-sm text-gray-800">
+                    )}
+                    <p className="text-sm text-gray-800">
                     {quote.billingAddress.city}, {quote.billingAddress.provinceCode} {quote.billingAddress.zip}
-                </p>
-                <p className="text-sm text-gray-800">{quote.billingAddress.country}</p>
-                {quote.billingAddress.phone && (
+                    </p>
+                    <p className="text-sm text-gray-800">{quote.billingAddress.country}</p>
+                    {quote.billingAddress.phone && (
                     <p className="text-sm text-gray-800">{quote.billingAddress.phone}</p>
-                )}
+                    )}
                 </div>
-            )}
-
-            {/* Company & Location */}
-            {(quote?.companyName || quote?.locationName) && (
-                <div>
-                <h4 className="font-semibold text-sm mb-1">Company / Location</h4>
-                {quote.companyName && (
-                    <p className="text-sm text-gray-800">{quote.companyName}</p>
                 )}
-                {quote.locationName && (
-                    <p className="text-sm text-gray-800">{quote.locationName}</p>
-                )}
-                </div>
-            )}
-
-            {/* Company & Location */}
-            {(quote?.status === "INVOICE_SENT" && quote?.paymentTerms) && (
-            <div>
-                <h4 className="font-semibold text-sm mb-1">Payment</h4>
-                <p className="text-sm text-gray-800">
-                {quote.paymentTerms.translatedName}: Due{" "}
-                {dayjs(quote.createdAt).add(quote.paymentTerms.dueInDays, 'day').format("MMMM D, YYYY")}
-                </p>
             </div>
-            )}
 
-
-            {/* Company & Location */}
-            {/* {(quote?.status === "INVOICE_SENT" && quote?.companyName) && (
+            {/* Grid for Company + Payment */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Company & Location */}
+                {(quote?.companyName || quote?.locationName) && (
                 <div>
-                <h4 className="font-semibold text-sm mb-1">Shipping method</h4>
-                {quote.companyName && (
+                    <h4 className="font-semibold text-sm mb-1">Company / Location</h4>
+                    {quote.companyName && (
                     <p className="text-sm text-gray-800">{quote.companyName}</p>
-                )}
-                {quote.locationName && (
+                    )}
+                    {quote.locationName && (
                     <p className="text-sm text-gray-800">{quote.locationName}</p>
-                )}
+                    )}
                 </div>
-            )} */}
-        </div>
+                )}
+
+                {/* Payment Terms */}
+                {quote?.status === "INVOICE_SENT" && quote?.paymentTerms && (
+                <div>
+                    <h4 className="font-semibold text-sm mb-1">Payment</h4>
+                    <p className="text-sm text-gray-800">
+                    {quote.paymentTerms.translatedName}: Due{" "}
+                    {dayjs(quote.createdAt)
+                        .add(quote.paymentTerms.dueInDays, "day")
+                        .format("MMMM D, YYYY")}
+                    </p>
+                </div>
+                )}
+            </div>
+            </div>
+
 
         {/* Footer note */}
         <p className="text-xs text-gray-500 border-t pt-4">
@@ -258,7 +257,7 @@ export default function SendInvoiceModal({
         <div className="p-4 border-b text-lg font-semibold">
           {step === "review" && "Send offer"}
           {step === "complete" && "Complete Your Purchase"}
-          {step === "resend" && "Resend offer / Confirm Order"}
+          {step === "resend" && "Resend offer / Confirm Quote"}
         </div>
 
         {/* Modal Body */}
@@ -427,7 +426,7 @@ export default function SendInvoiceModal({
           {step === "resend" && (
             <>
               <p className="text-gray-600 mb-4">
-                The offer has been sent successfully. You can resend the offer or confirm the order.
+                The offer has been sent successfully. You can resend the offer or confirm the quote.
               </p>
               {renderInvoiceSummary()}
             </>
