@@ -1,14 +1,14 @@
 import gql from 'graphql-tag';
-
+ 
 const GET_DRAFT_ORDERS = gql`
-  query getDraftOrders($query: String!) {
-    draftOrders(first: 100, query: $query) {
+  query getDraftOrders($query: String!, $sortKey: DraftOrderSortKeys, $reverse: Boolean) {
+    draftOrders(first: 250, query: $query, sortKey: $sortKey, reverse: $reverse) {
       edges {
         node {
           id
           name
           createdAt
-          status 
+          status
           note2
           tags
           totalPrice
@@ -58,5 +58,5 @@ const GET_DRAFT_ORDERS = gql`
     }
   }
 `;
-
+ 
 export default GET_DRAFT_ORDERS;

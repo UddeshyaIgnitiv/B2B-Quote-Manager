@@ -6,7 +6,13 @@ import { NextResponse } from 'next/server';
 export async function GET(req: Request) {
   try {
 
-    const response = await fetchAdminApi(GET_DRAFT_ORDERS, { query: '', });
+    //const response = await fetchAdminApi(GET_DRAFT_ORDERS, { query: '', });
+
+    const response = await fetchAdminApi(GET_DRAFT_ORDERS, {
+      query: 'tag:request_quote OR note:"Requested quote from storefront"',
+      sortKey: 'UPDATED_AT',
+      reverse: true,
+    });
     
     const draftOrders = response?.draftOrders?.edges?.map((edge: any) => edge.node) || [];
 
